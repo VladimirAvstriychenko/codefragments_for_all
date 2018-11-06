@@ -30,3 +30,4 @@ git pull origin master //Обновление локального репози�
 git clone http://whatever.git -b branch-name
 
 дописали что то
+dfasdfsadf
