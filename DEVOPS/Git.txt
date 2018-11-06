@@ -1,0 +1,31 @@
+Работа с git
+1. Установка и настройка Git
+sudo su
+apt-get update && apt-get install git-core
+git config --global user.name "strilchuk"
+git config --global user.email strilchukalexander@gmail.com
+git config -l
+exit
+2. Инициализация Git директории
+Переходим в каталог проекта
+git init
+Фиксируем текущее состояние или содержимое проекта. Для этого делаем первый коммит
+git status //показывает текущее состояние репозитория
+git add . //добавляет все файлы индекс
+git status
+git commit -m "Текст первого коммита" // коммит с комментарием
+git log //список коммитов
+3. Отправка изменений в центральный репозиторий
+git remote show //список репозиториев для хранения кода (будет пуст т.к. мы не клонировали проект а добавили первый раз)
+git remote add origin2 https://github.com/strilchuk/laravel_test_blog.git // добавляем репозиторий с именем origin2 
+git push origin2 master
+4. Клонирование
+git clone https://github.com/strilchuk/laravel_test_blog.git свое_название_проекта
+composer install
+git remote show
+git remote show origin
+git pull origin master //Обновление локального репозитория
+-----------------------------------------------------------
+1. Клонировать ветку репозитория
+git clone http://whatever.git -b branch-name
+

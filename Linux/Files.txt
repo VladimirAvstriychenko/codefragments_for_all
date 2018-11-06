@@ -1,0 +1,12 @@
+Перемещение
+mv notes ../play - перемещаем 'notes' из текущего рабочего каталога в каталог ../play'
+mv /usr/tmp/notes . - перемещаем '/usr/tmp/notes' в текущий рабочий каталог
+mv work play - перемещаем 'work' из текущего рабочего каталога в каталог 'play'
+mv notes notes.old - переименовать файл 'notes' в 'notes.old'
+
+Архивирование
+z - zip c - create f - file v - verbose (подробности)
+tar -zcvf archive.tar.gz /path/to/files - сжать папку
+ расзать архив  tar -xvf archive.tar.gz
+
+ https://wiki.dieg.info/tar

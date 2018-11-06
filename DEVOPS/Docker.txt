@@ -1,0 +1,125 @@
+Порядок развертывания шлюза ТТ-Онлайн
+
+Из под рута
+1. ставим докер
+sudo apt-get update
+
+sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+sudo apt-get update
+
+sudo apt-get install docker-ce
+
+sudo docker run hello-world
+
+2. ставим nginx и git
+apt install nginx git
+
+3. ставим docker-compose
+sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+
+4. добавляем права на запуск файлу docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+Из под админа
+5. создаем ключ
+ssh-keygen
+6. читаем ключ и добавляем его в ропозиторий
+ cat ~/.ssh/id_rsa.pub
+7. клонируем репозиторий c ветки rosprom-prod
+git clone git@bitbucket.org:rosprom_dev/server.git -b rosprom-prod
+
+из под рута
+8.
+добавляем пользователя admin в файл /etc/group в параметр с докером (редактируется из под рута)
+ mcedit /etc/group
+ docker:x:995:admin
+
+ из под админа
+ 9. установили значения глобальных переменных
+export ENABLE_PUSH_STAGE=0
+export BUILD_TYPE=prod
+export ENABLE_TESTS=no
+ 10. 
+ утснавливаем права на запуск скриптов build.sh и gradlew если их нет
+ chmod +x build.sh
+ 11.
+ собсно сборка server/docker/build/build.sh
+ 12. правим docker/run/docker-compose.yml : добавили туда FIREBASE_SERVICE_ACCOUNT_KEY_PATH=/config/firebase-rosprom-firebase-adminsdk-1me0g-27afe5433c.json
+
+ 13 если конфиги на месте и с ними все ок, то правим файл /etc/nginx/nginx.conf добавляя туда в нужное место include /srv/docker/*/nginx.conf;
+
+ 14. стартуем службу nginx : 
+      sudo systemctl enable nginx
+      sudo systemctl start nginx
+    
+ 15 проверяем 
+      netstat -nltp
+
+ 16 Добавляем нужный адрес в /etc/hosts : 188.225.38.243 gw.rsprm.ru      
+
+ 17 перезапускаем nginx sudo nginx -s reload
+
+ 18 Настраиваем файрвол
+ ufw status
+ ufw allow 22
+ ufw allow 80
+ ufw allow 443
+ ufw enable
+ systemctl enable ufw
+ systemctl start ufw
+ iptables-save
+ . запускаем образы докера из каталога run: docker-compose up -d. Проверяем что все стартануло docker ps
+ 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ ШПОРА:
+ - получить список запущенных контейнеров docker ps
+ - получить списко всех контейнеров docker ps -a
+ - получить каталог с логами докера docker inspect --format='{{.LogPath}}' run_server_1
+ - прочитать логи докера docker logs -f run_server_1
+ - перезапустить nginx -s reload
+ - работа с файрволом ufw status  ufw allow 22 ufw allow 80 ufw enable
+ - список дисков fdisk -l
+ - ключ --restart unless-stopped к команде "docker run" - перезапускает контейнер каждый раз при его остановке (падение, перезагрузка сервера) до его фактической остановки командой docker stop
+ - Остановка контейнера по id или имени:  docker stop b76895f31f2b
+ - удаление контейнера docker rm infinite
+ - запуск контейнера docker start nginx
+ - перезагрузка контейнера docker restart nginx
+ - пауза (остановка всех процессов) контейнера docker pause nginx
+ - снятие паузы docker unpause nginx
+ - Подключение к существующему контейнеру docker attach nginx // [хз как работает. зависант все если подключаться к шлюзу]
+ - Список всех образов docker imange ls (docker images)
+ - Удалить образ docker rmi nginx
+ - Список томов докера docker volume ls
+ 
+  ЕЩЕ ШПОРЫ https://github.com/eon01/DockerCheatSheet  https://habr.com/company/flant/blog/336654/
+
+
+Выполнение комманд внутри контейнера
+  docker exec -it <контейнер с базой> psql -U rosprom rosprom
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  Разрешаем внешнее управление демоном докера
+  
+1. Добавляем в /lib/systemd/system/docker.service в параметр ExecStart -H tcp://0.0.0.0:2375
+
+    ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2375
+
+2. Перезапускаем демоны systemctl daemon-reload
+3. Рестартуем сервис докера service docker restart
+4. Проверяем curl http://localhost:2375/version
+5. Разрешаем порт наружу ufw allow 2375
+6. Проверяем что порт торчит iptables -L | grep "2375"

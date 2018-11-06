@@ -1,0 +1,11 @@
+CLI of MySql
+1. Создание БД
+mysql -h 192.168.254.13 -u root -p //Подключаемся к серверу. Тут сервер указан, но можно оставить по умолчанию если он localhost
+CREATE USER 'laravel'@'%' IDENTIFIED BY 'laravelpass'; //laravel - login laravelpass - password localhost - Хост с которого будет доступен
+CREATE DATABASE laravel_blog CHARACTER SET utf8 COLLATE utf8_general_ci;
+GRANT ALL PRIVILEGES ON `laravel\_%`.* TO 'laravel'@'%'; //разрешаем доступ для созданного пользователя только для БД начинающихся с laravel
+FLUSH PRIVILEGES; //обновляем все права доступа
+
+2. Проверка доступа пользователя
+mysql -h 192.168.254.13 -u laravel -p
+show databases;

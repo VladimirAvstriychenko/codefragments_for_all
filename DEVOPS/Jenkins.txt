@@ -1,0 +1,44 @@
+РАЗВОРАЧИВАЕМ JENKINS
+1. Создаем том для конфигурации Jenkins.
+$ docker volume create jenkins_home
+2. Разворачиваем образ Jenkins: 
+
+    -Запускаем сервис Jenkins c именем jenkins
+    -Делаем доступным сервис на внешнем интерфейсе вашего сервера на порту 80 и 50000 (порт для API доступа)
+    -Монтируем том jenkins_home к контейнеру по пути /var/jenkins_home
+    -"Пробрасывает docker.sock внутрь Jenkins контейнера (я пытался заставить работать с ним Docker plugin, но из этой затеи ничего не вышло, плагин не обновлялся с 2016 года, можно не использовать эту инструкцию)."
+    -Просим Docker Engine перезапускать контейнер (--restart unless-stopped) каждый раз, когда он останавливается до момента его явной остановкой командой docker stop
+    $ docker run -d --name jenkins \
+        -p 801:8080 \
+        -p 50000:50000 \
+        -v jenkins_home:/var/jenkins_home \
+        --restart unless-stopped \
+        jenkins/jenkins
+
+3. Настривием nginx.conf чтоб пробросить запрос с 80 на 801 
+
+    Добавляем в блок html {} 
+    обычно по адресу /etc/nginx/nginx.conf
+
+    server {
+        listen 0.0.0.0:80;
+        server_name jenkins.strilchuk.ru;
+        location / {
+            proxy_set_header X-Forwarded-Host $host:$server_port;
+            proxy_set_header X-Real-IP  $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-Server $host;
+            proxy_set_header X-Forwarded-Port 80;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_connect_timeout     90;
+            proxy_send_timeout       400;
+            proxy_read_timeout      3600;
+            client_max_body_size   16400M;
+            proxy_pass http://127.0.0.1:801;
+        }
+    }
+
+4. Переходим на сайт, активируем jenkins введя команду из логов полученную 
+docker logs -f jenkins
+d20e7b35908646839c49176cb002fb55

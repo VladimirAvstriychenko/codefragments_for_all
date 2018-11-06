@@ -1,0 +1,43 @@
+ - Добавляем пользователя
+ adduser andreyex
+ usermod -aG sudo andreyex // Добавляем его в группу SUDO
+
+
+Настройка letsencrypt
+https://habr.com/post/318952/#ustanovka-certbot
+
+1.  sudo add-apt-repository ppa:certbot/certbot
+    sudo apt-get update
+    sudo apt-get install --upgrade letsencrypt
+
+2. создаем файл /etc/letsencrypt/cli.ini:
+    и наполняем:
+    authenticator = webroot
+    webroot-path = /var/www/html
+    post-hook = service nginx reload
+    text = True
+
+3. mkdir -p /var/www/html/.well-known/acme-challenge
+   echo Success > /var/www/html/.well-known/acme-challenge/example.html
+
+4. letsencrypt register --email 1cas@tkrosprom.com
+5. touch /etc/nginx/acme
+6. вставляем в acme 
+location /.well-known {
+    root /var/www/html;
+}
+7. в docker-compose в nginx.conf перед location пишем include acme;
+    НЕЗАБЫВАЕМ ПРО ПОРТ 443. ИМ НАДО ЗАМЕНИТЬ 80й порт в этом же файле
+8. service nginx reload
+9. curl -L http://www.example.com/.well-known/acme-challenge/example.html
+10. rm /var/www/html/.well-known/acme-challenge/example.html
+
+11. Тестовое получение сертификата
+letsencrypt certonly --dry-run -d gwstagetest.strilchuk.ru -d gwstagetest.strilchuk.ru
+12. Нормальное получение сертификата 
+letsencrypt certonly -d www.gwstagetest.strilchuk.ru -d gwstagetest.strilchuk.ru 
+13. Проверяем правильность 
+cat /etc/letsencrypt/live/*/cert.pem | openssl x509 -text | 
+        grep -o 'DNS:[^,]*' | cut -f2 -d:
+14. в /etc/cron.d/certbot добавляем --allow-subset-of-names после -q renew
+(д.б. -q renew --allow-subset-of-names)

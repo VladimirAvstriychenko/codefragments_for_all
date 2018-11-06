@@ -1,0 +1,17 @@
+После клонирования проекта с репозитория:
+1. composer install //composer инсталирует содержимое поставщиков
+2. cp .env.example .env (или copy env.example .env) //создаем файл env
+3. php artisan key:generate //генерируем ключ приложения
+4. проверяем права доступа на запись в каталоги storage и bootstrap/cache
+5. Используем обязательно mysql >= 5.7
+6. php artisan config:cache //каждый раз после внесения изменений в .env или confing/app.php нужно сбрасывать кэш конфига. Иначе не вступят в силу изменения. 
+7. php artisan migrate //после установки соединения laravel к DB запускам миграции
+
+
+Комманды Artisan
+php artisan make:auth //Создание авторизации
+php artisan make:controller Admin/DashboardController //Создали контроллер DashboardController в папке Admin (ее тоже создаем) в папке с остальными контроллерами
+php artisan route:list //общий список всех маршрутов
+
+Ссылки
+https://laravel.com/docs/5.5/helpers // список хелперов
